@@ -34,6 +34,12 @@ tasks:
   ####################
   #     Utility      #
   ####################
+  analyze:
+    desc: Run alp and slp
+    deps:
+      - run-alp
+      - run-slp
+
   truncate-log:
     desc: Truncate log files
     cmds:
@@ -87,3 +93,10 @@ tasks:
   ####################
   #     Internal     #
   ####################
+  run-alp:
+    cmds:
+      - alp ltsv --config "{{.REPO_DIR}}/config/alp.yml" --file /var/log/nginx/access.log > /tmp/alp.log
+
+  run-slp:
+    cmds:
+      - slp --config "{{.REPO_DIR}}/config/slp.yml" --file /var/log/mysql/mysql-slow.log > /tmp/slp.log
