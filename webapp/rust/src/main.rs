@@ -198,7 +198,7 @@ struct GetIsuConditionResponse {
     timestamp: i64,
     is_sitting: bool,
     condition: String,
-    condition_level: String,
+    condition_level: &'static str,
     message: String,
 }
 
@@ -239,7 +239,7 @@ async fn main() -> std::io::Result<()> {
 
     let pool = sqlx::mysql::MySqlPoolOptions::new()
         .max_connections(10)
-        .after_connect(|conn, _| {
+        .after_connect(|conn| {
             Box::pin(async move {
                 use sqlx::Executor as _;
                 // DB のタイムゾーンを JST に強制する
@@ -648,7 +648,7 @@ async fn post_isu(
     let mut image = None;
     while let Some(field) = payload.next().await {
         let field = field.map_err(|_| actix_web::error::ErrorBadRequest("bad format: icon"))?;
-        let content_disposition = field.content_disposition().clone();
+        let content_disposition = field.content_disposition().unwrap();
         let content = field
             .map_ok(|chunk| bytes::BytesMut::from(&chunk[..]))
             .try_concat()
@@ -1121,7 +1121,7 @@ async fn get_isu_conditions_from_db(
             .bind(jia_isu_uuid)
             .bind(end_time.naive_local())
             .bind(start_time.naive_local())
-            .bind(condition_level.iter().cloned().collect::<Vec<&str>>().join(", "))
+            .bind(condition_level.into_iter().copied().collect::<Vec<&str>>().join(", "))
             .bind(limit.to_string())
             .fetch_all(pool)
     } else {
@@ -1130,7 +1130,7 @@ async fn get_isu_conditions_from_db(
         )
         .bind(jia_isu_uuid)
         .bind(end_time.naive_local())
-        .bind(condition_level.iter().cloned().collect::<Vec<&str>>().join(", "))
+        .bind(condition_level.into_iter().copied().collect::<Vec<&str>>().join(", "))
         .bind(limit.to_string())
         .fetch_all(pool)
     }.await?;
@@ -1165,19 +1165,24 @@ async fn get_isu_conditions_from_db(
             timestamp: c.timestamp.timestamp(),
             is_sitting: c.is_sitting,
             condition: c.condition,
-            condition_level: c.level,
+            condition_level: match c.level.as_str() {
+                "info" => CONDITION_LEVEL_INFO,
+                "warning" => CONDITION_LEVEL_WARNING,
+                "warning" => CONDITION_LEVEL_CRITICAL,
+                _ => "",
+            },
             message: c.message,
         })
         .collect())
 }
 
 // ISUのコンディションの文字列からコンディションレベルを計算
-fn calculate_condition_level(condition: &str) -> Option<String> {
+fn calculate_condition_level(condition: &str) -> Option<&'static str> {
     let warn_count = condition.matches("=true").count();
     match warn_count {
-        0 => Some(CONDITION_LEVEL_INFO.to_string()),
-        1 | 2 => Some(CONDITION_LEVEL_WARNING.to_string()),
-        3 => Some(CONDITION_LEVEL_CRITICAL.to_string()),
+        0 => Some(CONDITION_LEVEL_INFO),
+        1 | 2 => Some(CONDITION_LEVEL_WARNING),
+        3 => Some(CONDITION_LEVEL_CRITICAL),
         _ => None,
     }
 }
@@ -1233,7 +1238,7 @@ async fn get_trend(pool: web::Data<sqlx::MySqlPool>) -> actix_web::Result<HttpRe
                     id: isu.id,
                     timestamp: isu_last_condition.timestamp.timestamp(),
                 };
-                match condition_level.as_str() {
+                match condition_level {
                     "info" => character_info_isu_conditions.push(trend_condition),
                     "warning" => character_warning_isu_conditions.push(trend_condition),
                     "critical" => character_critical_isu_conditions.push(trend_condition),
