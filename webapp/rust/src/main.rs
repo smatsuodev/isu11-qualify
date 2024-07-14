@@ -1119,7 +1119,7 @@ async fn get_isu_conditions_from_db(
             .bind(jia_isu_uuid)
             .bind(end_time.naive_local())
             .bind(start_time.naive_local())
-            .bind(limit as i32)
+            .bind(limit)
             .fetch_all(pool)
     } else {
         sqlx::query_as(
@@ -1127,7 +1127,7 @@ async fn get_isu_conditions_from_db(
         )
         .bind(jia_isu_uuid)
         .bind(end_time.naive_local())
-        .bind(limit as i32)
+        .bind(limit)
         .fetch_all(pool)
     }.await?;
 
