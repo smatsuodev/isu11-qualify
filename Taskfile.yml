@@ -95,8 +95,10 @@ tasks:
   ####################
   run-alp:
     cmds:
-      - alp ltsv --config "{{.REPO_DIR}}/config/alp.yml" --file /var/log/nginx/access.log > /tmp/alp.log
+      - touch /tmp/alp.log && mv /tmp/alp.log "/tmp/alp.log.$(date +%Y%m%d-%H%M%S)"
+      - alp ltsv --config "{{.REPO_DIR}}/config/alp.yml" --file /var/log/nginx/access.log > "/tmp/alp.log"
 
   run-slp:
     cmds:
+      - touch /tmp/slp.log && mv /tmp/alp.log "/tmp/slp.log.$(date +%Y%m%d-%H%M%S)"
       - slp --config "{{.REPO_DIR}}/config/slp.yml" --file /var/log/mysql/mysql-slow.log > /tmp/slp.log
