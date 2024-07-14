@@ -5,7 +5,6 @@ use chrono::TimeZone as _;
 use chrono::{DateTime, NaiveDateTime};
 use futures::StreamExt as _;
 use futures::TryStreamExt as _;
-use sqlx::QueryBuilder;
 use std::collections::{HashMap, HashSet};
 
 const SESSION_NAME: &str = "isucondition_rust";
@@ -1122,8 +1121,8 @@ async fn get_isu_conditions_from_db(
             .bind(jia_isu_uuid)
             .bind(end_time.naive_local())
             .bind(start_time.naive_local())
-            .bind(condition_level.into_iter().collect<Vec<&str>>().join(", "))
-            .bind(limit)
+            .bind(condition_level.into_iter().collect::<Vec<&str>>().join(", "))
+            .bind(limit.to_string())
             .fetch_all(pool)
     } else {
         sqlx::query_as(
@@ -1131,8 +1130,8 @@ async fn get_isu_conditions_from_db(
         )
         .bind(jia_isu_uuid)
         .bind(end_time.naive_local())
-        .bind(condition_level.into_iter().collect<Vec<&str>>().join(", "))
-        .bind(limit)
+        .bind(condition_level.into_iter().collect::<Vec<&str>>().join(", "))
+        .bind(limit.to_string())
         .fetch_all(pool)
     }.await?;
 
@@ -1157,16 +1156,18 @@ async fn get_isu_conditions_from_db(
     //     conditions_response.truncate(limit);
     // }
 
-    Ok(conditions.iter().map(|c| { GetIsuConditionResponse {
-                    jia_isu_uuid: c.jia_isu_uuid,
-                    isu_name: isu_name.to_owned(),
-                    timestamp: c.timestamp.timestamp(),
-                    is_sitting: c.is_sitting,
-                    condition: c.condition,
-                    condition_level: &c.level,
-                    message: c.message,
-                } }).collect()
-)
+    Ok(conditions
+        .iter()
+        .map(|c| GetIsuConditionResponse {
+            jia_isu_uuid: c.jia_isu_uuid,
+            isu_name: isu_name.to_owned(),
+            timestamp: c.timestamp.timestamp(),
+            is_sitting: c.is_sitting,
+            condition: c.condition,
+            condition_level: &c.level,
+            message: c.message,
+        })
+        .collect())
 }
 
 // ISUのコンディションの文字列からコンディションレベルを計算
