@@ -21,15 +21,15 @@ CREATE TABLE `isu_condition` (
   `timestamp` DATETIME NOT NULL,
   `is_sitting` TINYINT(1) NOT NULL,
   `condition` VARCHAR(255) NOT NULL,
+  `message` VARCHAR(255) NOT NULL,
+  `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
   `level` VARCHAR(10) AS (
     CASE 
       WHEN INSTR(`condition`, '=true') = 0 THEN "info"
       WHEN INSTR(`condition`, '=false') = 0 THEN "critical"
       ELSE "warning"
     END
-  ) STORED,
-  `message` VARCHAR(255) NOT NULL,
-  `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
+  ) STORED DEFAULT "",
   PRIMARY KEY(`id`),
   INDEX idx_uuid_timestamp (jia_isu_uuid, `timestamp` DESC)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4;
