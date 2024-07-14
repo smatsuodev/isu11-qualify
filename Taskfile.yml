@@ -4,7 +4,7 @@ version: "3"
 
 vars:
   # Frequently changed
-  SERVICES: mysql mariadb isucondition.go
+  SERVICES: mysql mariadb isucondition.rust
   SRC_DIR: "/home/isucon/webapp/rust"
   REPO_DIR: /home/isucon/repo
 
