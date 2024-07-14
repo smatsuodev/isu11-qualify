@@ -100,5 +100,5 @@ tasks:
 
   run-slp:
     cmds:
-      - touch /tmp/slp.log && mv /tmp/alp.log "/tmp/slp.log.$(date +%Y%m%d-%H%M%S)"
+      - touch /tmp/slp.log && mv /tmp/slp.log "/tmp/slp.log.$(date +%Y%m%d-%H%M%S)"
       - slp --config "{{.REPO_DIR}}/config/slp.yml" --file /var/log/mysql/mysql-slow.log > /tmp/slp.log
