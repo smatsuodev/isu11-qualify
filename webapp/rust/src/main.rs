@@ -1137,21 +1137,22 @@ async fn get_isu_conditions_from_db(
 
     // let mut conditions_response = Vec::new();
     // for c in conditions {
-    //     if let Some(c_level) = calculate_condition_level(&c.condition) {
-    //         if condition_level.contains(c_level) {
-    //             conditions_response.push(GetIsuConditionResponse {
-    //                 jia_isu_uuid: c.jia_isu_uuid,
-    //                 isu_name: isu_name.to_owned(),
-    //                 timestamp: c.timestamp.timestamp(),
-    //                 is_sitting: c.is_sitting,
-    //                 condition: c.condition,
-    //                 condition_level: c_level,
-    //                 message: c.message,
-    //             });
-    //         }
-    //     }
+    //     // if let Some(c_level) = calculate_condition_level(&c.condition) {
+    //     //     if condition_level.contains(c_level) {
+    //     conditions_response.push(GetIsuConditionResponse {
+    //         jia_isu_uuid: c.jia_isu_uuid,
+    //         isu_name: isu_name.to_owned(),
+    //         timestamp: c.timestamp.timestamp(),
+    //         is_sitting: c.is_sitting,
+    //         condition: c.condition,
+    //         condition_level: &c.level,
+    //         message: c.message,
+    //     });
+    //     //     }
+    //     // }
     // }
 
+    // Ok(conditions_response)
     // if conditions_response.len() > limit {
     //     conditions_response.truncate(limit);
     // }
@@ -1164,7 +1165,12 @@ async fn get_isu_conditions_from_db(
             timestamp: c.timestamp.timestamp(),
             is_sitting: c.is_sitting,
             condition: c.condition,
-            condition_level: &c.level,
+            condition_level: match &c.level {
+                "info" => CONDITION_LEVEL_INFO,
+                "warning" => CONDITION_LEVEL_WARNING,
+                "warning" => CONDITION_LEVEL_CRITICAL,
+                _ => "",
+            },
             message: c.message,
         })
         .collect())
