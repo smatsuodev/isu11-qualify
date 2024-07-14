@@ -1,7 +1,8 @@
 matching_groups:
-  - ^/api/mock/.+[0-9]$
-  - ^/api/mock/.+[a-z]$
+  - ^/api/isu/[^/]+$
+  - ^/api/isu/[^/]+/condition$
+  - ^/api/isu/[^/]+/graph$
 sort: sum
 reverse: true
 output: count,2xx,3xx,4xx,5xx,method,uri,sum,avg,p50,p90,p99,max_body
-percentiles: [ 50, 90, 99 ]
+percentiles: [50, 90, 99]
