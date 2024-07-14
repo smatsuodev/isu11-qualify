@@ -7,6 +7,7 @@ vars:
   SERVICES: mysql mariadb isucondition.rust
   SRC_DIR: "/home/isucon/webapp/rust"
   REPO_DIR: /home/isucon/repo
+  LOGS: /var/log/mysql/mysql-slow.log /var/log/nginx/access.log
 
   # Rarely changed
 
@@ -22,6 +23,7 @@ tasks:
       - task: build
       - sudo systemctl daemon-reload
       - task: restart-all
+      - task: truncate-log
 
   build:
     desc: Build the application
@@ -32,6 +34,11 @@ tasks:
   ####################
   #     Utility      #
   ####################
+  truncate-log:
+    desc: Truncate log files
+    cmds:
+      - sudo truncate -s 0 {{.LOGS}}
+
   checkout:
     desc: Checkout and sync with the latest remote branch
     vars:
