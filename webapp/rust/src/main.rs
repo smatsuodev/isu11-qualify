@@ -1114,26 +1114,29 @@ async fn get_isu_conditions_from_db(
     limit: usize,
     isu_name: &str,
 ) -> sqlx::Result<Vec<GetIsuConditionResponse>> {
+    let q1 = format!(
+            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `level` IN ({})  ORDER BY `timestamp` DESC LIMIT ?",
+            condition_level.iter().cloned().collect::<Vec<&str>>().join(", "),
+        );
+    let q2 = format!(
+            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` level IN {} ORDER BY `timestamp` DESC LIMIT ?",
+            condition_level.iter().cloned().collect::<Vec<&str>>().join(", "),
+        );
     let conditions: Vec<IsuCondition> = if let Some(ref start_time) = start_time {
-        sqlx::query_as(
-            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` level IN (?) ORDER BY `timestamp` DESC LIMIT ?",
-        )
+        sqlx::query_as(q2.as_str())
             .bind(jia_isu_uuid)
             .bind(end_time.naive_local())
             .bind(start_time.naive_local())
-            .bind(condition_level.iter().cloned().collect::<Vec<&str>>().join(", "))
             .bind(limit.to_string())
             .fetch_all(pool)
     } else {
-        sqlx::query_as(
-            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `level` IN (?)  ORDER BY `timestamp` DESC LIMIT ?",
-        )
-        .bind(jia_isu_uuid)
-        .bind(end_time.naive_local())
-        .bind(condition_level.iter().cloned().collect::<Vec<&str>>().join(", "))
-        .bind(limit.to_string())
-        .fetch_all(pool)
-    }.await?;
+        sqlx::query_as(q1.as_str())
+            .bind(jia_isu_uuid)
+            .bind(end_time.naive_local())
+            .bind(limit.to_string())
+            .fetch_all(pool)
+    }
+    .await?;
 
     // let mut conditions_response = Vec::new();
     // for c in conditions {
