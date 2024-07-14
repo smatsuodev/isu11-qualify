@@ -36,8 +36,8 @@ tasks:
     desc: Checkout and sync with the latest remote branch
     vars:
       BRANCH: '{{.CLI_ARGS | default "main"}}'
+    dir: "{{.REPO_DIR}}"
     cmds:
-      - cd {{.REPO_DIR}}
       - git fetch --all
       - git reset --hard origin/{{.BRANCH}}
       - git switch -C {{.BRANCH}} origin/{{.BRANCH}}
