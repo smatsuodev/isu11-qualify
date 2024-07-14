@@ -2,6 +2,7 @@ matching_groups:
   - ^/assets/[^/]+$
   - ^/isu/[^/]+$
   - ^/isu/[^/]+/graph$
+  - ^/isu/[^/]+/condition$
   - ^/api/isu/[^/]+$
   - ^/api/isu/[^/]+/condition$
   - ^/api/isu/[^/]+/graph$
