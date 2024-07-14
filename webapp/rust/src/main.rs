@@ -1116,11 +1116,11 @@ async fn get_isu_conditions_from_db(
 ) -> sqlx::Result<Vec<GetIsuConditionResponse>> {
     let q1 = format!(
             "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `level` IN ({})  ORDER BY `timestamp` DESC LIMIT ?",
-            condition_level.iter().cloned().collect::<Vec<&str>>().join(", "),
+            condition_level.iter().cloned().map(|c|format!("'{}'",c)).collect::<Vec<&str>>().join(", "),
         );
     let q2 = format!(
-            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` AND level IN ({}) ORDER BY `timestamp` DESC LIMIT ?",
-            condition_level.iter().cloned().collect::<Vec<&str>>().join(", "),
+            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` AND `level` IN ({}) ORDER BY `timestamp` DESC LIMIT ?",
+            condition_level.iter().cloned().map(|c|format!("'{}'",c)).collect::<Vec<String>>().join(", "),
         );
     log::info!("q1: {}", q1);
     log::info!("q2: {}", q2);
