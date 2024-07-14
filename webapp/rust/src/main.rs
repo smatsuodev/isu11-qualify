@@ -1165,7 +1165,7 @@ async fn get_isu_conditions_from_db(
             timestamp: c.timestamp.timestamp(),
             is_sitting: c.is_sitting,
             condition: c.condition,
-            condition_level: match &c.level {
+            condition_level: match c.level.as_str() {
                 "info" => CONDITION_LEVEL_INFO,
                 "warning" => CONDITION_LEVEL_WARNING,
                 "warning" => CONDITION_LEVEL_CRITICAL,
