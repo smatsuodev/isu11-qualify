@@ -5,6 +5,7 @@ use chrono::TimeZone as _;
 use chrono::{DateTime, NaiveDateTime};
 use futures::StreamExt as _;
 use futures::TryStreamExt as _;
+use sqlx::QueryBuilder;
 use std::collections::{HashMap, HashSet};
 
 const SESSION_NAME: &str = "isucondition_rust";
@@ -95,6 +96,7 @@ struct IsuCondition {
     timestamp: DateTime<chrono::FixedOffset>,
     is_sitting: bool,
     condition: String,
+    level: String,
     message: String,
     created_at: DateTime<chrono::FixedOffset>,
 }
@@ -113,6 +115,7 @@ impl sqlx::FromRow<'_, sqlx::mysql::MySqlRow> for IsuCondition {
             timestamp,
             is_sitting: row.try_get("is_sitting")?,
             condition: row.try_get("condition")?,
+            level: row.try_get("level")?,
             message: row.try_get("message")?,
             created_at,
         })
@@ -1114,43 +1117,56 @@ async fn get_isu_conditions_from_db(
 ) -> sqlx::Result<Vec<GetIsuConditionResponse>> {
     let conditions: Vec<IsuCondition> = if let Some(ref start_time) = start_time {
         sqlx::query_as(
-            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` ORDER BY `timestamp` DESC",
+            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` level IN (?) ORDER BY `timestamp` DESC LIMIT ?",
         )
             .bind(jia_isu_uuid)
             .bind(end_time.naive_local())
             .bind(start_time.naive_local())
+            .bind(condition_level.into_iter().collect<Vec<&str>>().join(", "))
+            .bind(limit)
             .fetch_all(pool)
     } else {
         sqlx::query_as(
-            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ? ORDER BY `timestamp` DESC",
+            "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `level` IN (?)  ORDER BY `timestamp` DESC LIMIT ?",
         )
         .bind(jia_isu_uuid)
         .bind(end_time.naive_local())
+        .bind(condition_level.into_iter().collect<Vec<&str>>().join(", "))
+        .bind(limit)
         .fetch_all(pool)
     }.await?;
 
-    let mut conditions_response = Vec::new();
-    for c in conditions {
-        if let Some(c_level) = calculate_condition_level(&c.condition) {
-            if condition_level.contains(c_level) {
-                conditions_response.push(GetIsuConditionResponse {
+    // let mut conditions_response = Vec::new();
+    // for c in conditions {
+    //     if let Some(c_level) = calculate_condition_level(&c.condition) {
+    //         if condition_level.contains(c_level) {
+    //             conditions_response.push(GetIsuConditionResponse {
+    //                 jia_isu_uuid: c.jia_isu_uuid,
+    //                 isu_name: isu_name.to_owned(),
+    //                 timestamp: c.timestamp.timestamp(),
+    //                 is_sitting: c.is_sitting,
+    //                 condition: c.condition,
+    //                 condition_level: c_level,
+    //                 message: c.message,
+    //             });
+    //         }
+    //     }
+    // }
+
+    // if conditions_response.len() > limit {
+    //     conditions_response.truncate(limit);
+    // }
+
+    Ok(conditions.iter().map(|c| { GetIsuConditionResponse {
                     jia_isu_uuid: c.jia_isu_uuid,
                     isu_name: isu_name.to_owned(),
                     timestamp: c.timestamp.timestamp(),
                     is_sitting: c.is_sitting,
                     condition: c.condition,
-                    condition_level: c_level,
+                    condition_level: &c.level,
                     message: c.message,
-                });
-            }
-        }
-    }
-
-    if conditions_response.len() > limit {
-        conditions_response.truncate(limit);
-    }
-
-    Ok(conditions_response)
+                } }).collect()
+)
 }
 
 // ISUのコンディションの文字列からコンディションレベルを計算
