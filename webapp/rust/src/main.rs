@@ -1121,7 +1121,7 @@ async fn get_isu_conditions_from_db(
             .bind(jia_isu_uuid)
             .bind(end_time.naive_local())
             .bind(start_time.naive_local())
-            .bind(condition_level.into_iter().collect::<Vec<&str>>().join(", "))
+            .bind(condition_level.iter().collect::<Vec<&str>>().join(", "))
             .bind(limit.to_string())
             .fetch_all(pool)
     } else {
@@ -1130,7 +1130,7 @@ async fn get_isu_conditions_from_db(
         )
         .bind(jia_isu_uuid)
         .bind(end_time.naive_local())
-        .bind(condition_level.into_iter().collect::<Vec<&str>>().join(", "))
+        .bind(condition_level.iter().collect::<Vec<&str>>().join(", "))
         .bind(limit.to_string())
         .fetch_all(pool)
     }.await?;
