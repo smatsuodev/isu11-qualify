@@ -23,13 +23,13 @@ CREATE TABLE `isu_condition` (
   `condition` VARCHAR(255) NOT NULL,
   `message` VARCHAR(255) NOT NULL,
   `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
-  `level` VARCHAR(10) AS (
+  `level` VARCHAR(10) GENERATED ALWAYS AS (
     CASE 
       WHEN INSTR(`condition`, '=true') = 0 THEN "info"
       WHEN INSTR(`condition`, '=false') = 0 THEN "critical"
       ELSE "warning"
     END
-  ) STORED DEFAULT "",
+  ) STORED,
   PRIMARY KEY(`id`),
   INDEX idx_uuid_timestamp (jia_isu_uuid, `timestamp` DESC)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4;
