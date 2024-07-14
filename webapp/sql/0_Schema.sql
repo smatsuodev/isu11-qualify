@@ -29,7 +29,7 @@ CREATE TABLE `isu_condition` (
       WHEN INSTR(`condition`, '=false') = 0 THEN "critical"
       ELSE "warning"
     END
-  ) STORED,
+  ) VIRTUAL,
   PRIMARY KEY(`id`),
   INDEX idx_uuid_timestamp (jia_isu_uuid, `timestamp` DESC)
 ) ENGINE=InnoDB DEFAULT CHARACTER SET=utf8mb4;
