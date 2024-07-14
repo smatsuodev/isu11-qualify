@@ -1122,6 +1122,8 @@ async fn get_isu_conditions_from_db(
             "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? AND `timestamp` < ?	AND ? <= `timestamp` AND level IN ({}) ORDER BY `timestamp` DESC LIMIT ?",
             condition_level.iter().cloned().collect::<Vec<&str>>().join(", "),
         );
+    log::info!("q1: {}", q1);
+    log::info!("q2: {}", q2);
     let conditions: Vec<IsuCondition> = if let Some(ref start_time) = start_time {
         sqlx::query_as(q2.as_str())
             .bind(jia_isu_uuid)
