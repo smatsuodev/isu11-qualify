@@ -1157,7 +1157,7 @@ async fn get_isu_conditions_from_db(
     // }
 
     Ok(conditions
-        .iter()
+        .into_iter()
         .map(|c| GetIsuConditionResponse {
             jia_isu_uuid: c.jia_isu_uuid,
             isu_name: isu_name.to_owned(),
