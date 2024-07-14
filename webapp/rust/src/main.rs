@@ -1185,9 +1185,18 @@ async fn get_trend(pool: web::Data<sqlx::MySqlPool>) -> actix_web::Result<HttpRe
         let mut character_info_isu_conditions = Vec::new();
         let mut character_warning_isu_conditions = Vec::new();
         let mut character_critical_isu_conditions = Vec::new();
+        // let query = "SELECT
+        // c.id as id,
+        // c.jia_isu_uuid as jia_isu_uuid,
+        // c.timestamp as timestamp,
+        // c.is_sitting as is_sitting,
+        // c.condtion as condition,
+        // c.message as message,
+        // c.created_at as created_at
+        // FROM `isu_condition` AS c JOIN `isu` AS i ON c.jia_isu_uuid = i.jia_isu_uuid ORDER BY timestamp DESC";
         for isu in isu_list {
             let conditions: Vec<IsuCondition> = sqlx::query_as(
-                "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? ORDER BY timestamp DESC",
+                "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? ORDER BY timestamp DESC LIMIT 1",
             )
             .bind(&isu.jia_isu_uuid)
             .fetch_all(pool.as_ref())
