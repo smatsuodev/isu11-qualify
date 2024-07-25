@@ -500,6 +500,7 @@ async fn post_initialize(
     .execute(pool.as_ref())
     .await
     .map_err(SqlxError)?;
+    reqwest::get("http://localhost:9000/api/group/collect").await;
     Ok(HttpResponse::Ok().json(InitializeResponse {
         language: "rust".to_owned(),
     }))
